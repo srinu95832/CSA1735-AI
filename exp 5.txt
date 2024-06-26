@@ -1,0 +1,65 @@
+from collections import deque
+
+# Define the initial and goal states
+initial_state = (3, 3, 1)  # (missionaries on the left, cannibals on the left, boat position)
+goal_state = (0, 0, 0)     # (missionaries on the left, cannibals on the left, boat position)
+
+def is_valid_state(state):
+    missionaries_left, cannibals_left, boat = state
+    missionaries_right = 3 - missionaries_left
+    cannibals_right = 3 - cannibals_left
+
+    # Check if missionaries are outnumbered by cannibals on either side
+    if (missionaries_left > 0 and missionaries_left < cannibals_left) or \
+       (missionaries_right > 0 and missionaries_right < cannibals_right):
+        return False
+
+    return True
+
+def generate_next_states(state):
+    possible_moves = [(1, 0), (2, 0), (0, 1), (0, 2), (1, 1)]
+    next_states = []
+
+    for move in possible_moves:
+        missionaries_left, cannibals_left, boat = state
+        if boat == 1:
+            missionaries_left -= move[0]
+            cannibals_left -= move[1]
+        else:
+            missionaries_left += move[0]
+            cannibals_left += move[1]
+        
+        missionaries_right = 3 - missionaries_left
+        cannibals_right = 3 - cannibals_left
+
+        if 0 <= missionaries_left <= 3 and 0 <= cannibals_left <= 3 and is_valid_state((missionaries_left, cannibals_left, 1 - boat)):
+            next_states.append((missionaries_left, cannibals_left, 1 - boat))
+
+    return next_states
+
+def solve_missionaries_cannibals(initial_state, goal_state):
+    visited = set()
+    queue = deque([(initial_state, [])])
+
+    while queue:
+        current_state, path = queue.popleft()
+
+        if current_state == goal_state:
+            return path + [current_state]
+
+        if current_state not in visited:
+            visited.add(current_state)
+            for next_state in generate_next_states(current_state):
+                if next_state not in visited:
+                    queue.append((next_state, path + [current_state]))
+
+    return None
+
+result = solve_missionaries_cannibals(initial_state, goal_state)
+
+if result:
+    print("Solution found:")
+    for state in result:
+        print(state)
+else:
+    print("No solution found.")
